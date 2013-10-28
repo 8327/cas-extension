@@ -37,11 +37,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:p="http://www.springframework.org/schema/p"
-       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:util="http://www.springframework.org/schema/util" xmlns:jee="http://www.springframework.org/schema/jee"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
 
 
-       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
 
 
     <!--
@@ -93,7 +93,9 @@
 
     <!-- Primary authentication handler -->
     <bean id="primaryAuthenticationHandler" class="org.jasig.cas.adaptors.jdbc.SearchModeSearchDatabaseAuthenticationHandler"
-          p:tableUsers="${users.table.name}" p:fieldUser="${users.field.username}" p:fieldPassword="${users.field.password}" p:dataSource="dataSource" />
+          p:tableUsers="${users.table.name}" p:fieldUser="${users.field.username}" p:fieldPassword="${users.field.password}" p:dataSource-ref="dataSource" />
+    
+    <jee:jndi-lookup id="dataSource" jndi-name="jdbc/cas-db" />
 
     <!--
          | Resolves a principal from a credential using an attribute repository that is configured to resolve
