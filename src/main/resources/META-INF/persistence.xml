@@ -5,13 +5,14 @@
              version="2.0">
     <persistence-unit name="cas-users">
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
+        <!--<class>com.fingolfintek.model.UserAuthenticationInfo</class>-->
         <properties>
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
             <property name="hibernate.ejb.packages" value="com.eurogiro.orm"/>
-            <property name="hibernate.archive.autodetection" value=""/>
+            <property name="hibernate.archive.autodetection" value="class"/>
         </properties>
     </persistence-unit>
 </persistence>

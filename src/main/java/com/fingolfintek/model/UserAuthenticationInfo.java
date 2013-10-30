@@ -1,9 +1,8 @@
 package com.fingolfintek.model;
 
-import javax.annotation.Generated;
 import javax.persistence.*;
 
-import static javax.persistence.GenerationType.*;
+import static javax.persistence.GenerationType.AUTO;
 
 @Entity
 @Table(name = "USER_INFO")
@@ -12,6 +11,14 @@ public class UserAuthenticationInfo {
     private Long id;
     private String username;
     private String password;
+
+    public UserAuthenticationInfo() {
+    }
+
+    public UserAuthenticationInfo(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
 
     @Id
     @GeneratedValue(strategy = AUTO)
