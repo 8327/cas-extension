@@ -94,8 +94,6 @@
     <!-- Primary authentication handler -->
     <bean id="primaryAuthenticationHandler" class="org.jasig.cas.adaptors.jdbc.SearchModeSearchDatabaseAuthenticationHandler"
           p:tableUsers="${users.table.name}" p:fieldUser="${users.field.username}" p:fieldPassword="${users.field.password}" p:dataSource-ref="dataSource" />
-    
-    <jee:jndi-lookup id="dataSource" jndi-name="jdbc/cas-db" />
 
     <!--
          | Resolves a principal from a credential using an attribute repository that is configured to resolve
