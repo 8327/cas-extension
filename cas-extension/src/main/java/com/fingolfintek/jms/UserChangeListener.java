@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
+import java.io.IOException;
 import java.util.Map;
 
 @Component("userChangeListener")
@@ -26,27 +28,44 @@ public class UserChangeListener implements MessageListener {
         Assert.isInstanceOf(TextMessage.class, message, "Only text messages are allowed");
 
         try {
-            TextMessage textMessage = (TextMessage) message;
-            String messageText = textMessage.getText();
-            logger.info("Received message {} with correlation Id {}", messageText, textMessage.getJMSCorrelationID());
-
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, String> updateInfo = mapper.readValue(messageText, Map.class);
-
-            String username = updateInfo.get("username");
-            UserAuthenticationInfo newInfo = new UserAuthenticationInfo(username, updateInfo.get("password"));
-
-            UserAuthenticationInfo info = repository.findByUsername(username);
-            if (info != null) {
-                BeanUtils.copyProperties(newInfo, info, new String[]{"id"});
-            } else {
-                info = newInfo;
-            }
-
-            repository.save(info);
+            String messageText = readMessageText((TextMessage) message);
+            UserAuthenticationInfo updateInfo = parseMessageText(messageText);
+            updateUserInformation(updateInfo);
         } catch (Exception e) {
             logger.error("Encountered unexpected exception", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private void updateUserInformation(UserAuthenticationInfo updateInfo) {
+        UserAuthenticationInfo updatedInformation = prepareUsernameInformationForUpdate(updateInfo);
+        repository.save(updatedInformation);
+    }
+
+    private UserAuthenticationInfo prepareUsernameInformationForUpdate(UserAuthenticationInfo updateInfo) {
+        UserAuthenticationInfo info = repository.findByUsername(updateInfo.getUsername());
+
+        if (userExists(info)) {
+            BeanUtils.copyProperties(updateInfo, info, new String[]{"id"});
+        } else {
+            info = updateInfo;
+        }
+
+        return info;
+    }
+
+    private boolean userExists(UserAuthenticationInfo info) {
+        return info != null;
+    }
+
+    private UserAuthenticationInfo parseMessageText(String messageText) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(messageText, UserAuthenticationInfo.class);
+    }
+
+    private String readMessageText(TextMessage message) throws JMSException {
+        String messageText = message.getText();
+        logger.info("Received message {} with correlation Id {}", messageText, message.getJMSCorrelationID());
+        return messageText;
     }
 }
