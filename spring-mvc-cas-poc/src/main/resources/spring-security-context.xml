@@ -1,109 +1,56 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:sec="http://www.springframework.org/schema/security"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
-
-    <beans xmlns="http://www.springframework.org/schema/beans"
-           xmlns:sec="http://www.springframework.org/schema/security"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
                         http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
 
-        <bean id="springSecurityFilterChain" class="org.springframework.security.web.FilterChainProxy">
-            <sec:filter-chain-map path-type="ant">
-                <sec:filter-chain pattern="/" filters="casValidationFilter, wrappingFilter"/>
-                <sec:filter-chain pattern="/secure/receptor" filters="casValidationFilter"/>
-                <sec:filter-chain pattern="/j_spring_security_logout" filters="logoutFilter,etf,fsi"/>
-                <sec:filter-chain pattern="/**" filters="casAuthenticationFilter, casValidationFilter, wrappingFilter, sif,j2eePreAuthFilter,logoutFilter,etf,fsi"/>
-            </sec:filter-chain-map>
-        </bean>
+    <sec:authentication-manager alias="authenticationManager">
+        <sec:authentication-provider ref="casAuthenticationProvider"/>
+    </sec:authentication-manager>
 
-        <bean id="sif" class="org.springframework.security.web.context.SecurityContextPersistenceFilter"/>
+    <bean id="casAuthenticationProvider" class="org.springframework.security.cas.authentication.CasAuthenticationProvider"
+          p:authenticationUserDetailsService-ref="authenticationUserDetailsService" p:serviceProperties-ref="serviceProperties" p:ticketValidator-ref="ticketValidator"
+          p:key="an_id_for_this_auth_provider_only">
+    </bean>
 
-        <sec:authentication-manager alias="authenticationManager">
-            <sec:authentication-provider ref="preAuthAuthProvider"/>
-        </sec:authentication-manager>
+    <bean id="authenticationUserDetailsService" class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
+        <constructor-arg ref="userService"/>
+    </bean>
 
-        <bean id="preAuthAuthProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
-            <property name="preAuthenticatedUserDetailsService">
-                <bean id="userDetailsServiceWrapper" class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
-                    <property name="userDetailsService" ref="userService"/>
-                </bean>
-            </property>
-        </bean>
+    <bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties" p:service="https://hal9000:8443/spring-mvc-cas-poc/signin"
+          p:sendRenew="false"/>
 
-        <bean id="preAuthEntryPoint" class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint"/>
+    <bean id="ticketValidator" class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator">
+        <constructor-arg index="0" value="https://hal9000:8443/cas"/>
+    </bean>
 
-        <bean id="j2eePreAuthFilter" class="org.springframework.security.web.authentication.preauth.j2ee.J2eePreAuthenticatedProcessingFilter">
-            <property name="authenticationManager" ref="authenticationManager"/>
-            <property name="authenticationDetailsSource">
-                <bean class="org.springframework.security.web.authentication.WebAuthenticationDetailsSource"/>
-            </property>
-        </bean>
+    <sec:http entry-point-ref="casEntryPoint" use-expressions="true">
+        <sec:logout logout-success-url="/signin"/>
+        <sec:remember-me services-ref="rememberMeServices" key="remember-me-key"/>
+        <sec:intercept-url pattern="/" access="permitAll"/>
+        <sec:intercept-url pattern="/resources/**" access="permitAll"/>
+        <sec:intercept-url pattern="/signin" access="permitAll"/>
+        <sec:intercept-url pattern="/signup" access="permitAll"/>
+        <sec:intercept-url pattern="/default/**" access="permitAll"/>
+        <sec:intercept-url pattern="/**" access="isAuthenticated()"/>
+        <sec:custom-filter position="CAS_FILTER" ref="casFilter"/>
+        <sec:custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER"/>
+        <sec:custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/>
+    </sec:http>
 
-        <bean id="logoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter">
-            <constructor-arg value="/"/>
-            <constructor-arg>
-                <list>
-                    <bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
-                </list>
-            </constructor-arg>
-        </bean>
+    <bean id="casEntryPoint" class="org.springframework.security.cas.web.CasAuthenticationEntryPoint" p:loginUrl="https://hal9000:9443/cas/login"
+          p:serviceProperties-ref="serviceProperties"/>
 
-        <bean id="servletContext" class="org.springframework.web.context.support.ServletContextFactoryBean"/>
+    <bean id="casFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter" p:authenticationManager-ref="authenticationManager"/>
 
-        <bean id="etf" class="org.springframework.security.web.access.ExceptionTranslationFilter">
-            <property name="authenticationEntryPoint" ref="preAuthEntryPoint"/>
-        </bean>
+    <bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter"/>
 
-        <bean id="httpRequestAccessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
-            <property name="allowIfAllAbstainDecisions" value="false"/>
-            <property name="decisionVoters">
-                <list>
-                    <ref bean="roleVoter"/>
-                </list>
-            </property>
-        </bean>
-
-        <bean id="fsi" class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor">
-            <property name="authenticationManager" ref="authenticationManager"/>
-            <property name="accessDecisionManager" ref="httpRequestAccessDecisionManager"/>
-            <property name="securityMetadataSource">
-                <sec:filter-invocation-definition-source>
-                    <sec:intercept-url pattern="/secure/extreme/**" access="ROLE_SUPERVISOR"/>
-                    <sec:intercept-url pattern="/secure/**" access="ROLE_USER"/>
-                    <sec:intercept-url pattern="/**" access="ROLE_USER"/>
-                </sec:filter-invocation-definition-source>
-            </property>
-        </bean>
-
-        <bean id="roleVoter" class="org.springframework.security.access.vote.RoleVoter"/>
-
-        <bean id="securityContextHolderAwareRequestFilter" class="org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter"/>
-
-        <bean class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator" id="ticketValidator">
-            <constructor-arg index="0" value="https://hal9000:8443/cas"/>
-            <!--<property name="proxyGrantingTicketStorage" ref="proxyGrantingTicketStorage" />-->
-            <!--<property name="proxyCallbackUrl" value="https://localhost:8443/cas-sample/secure/receptor" />-->
-        </bean>
-
-        <bean id="proxyGrantingTicketStorage" class="org.jasig.cas.client.proxy.ProxyGrantingTicketStorageImpl"/>
-
-        <bean id="casAuthenticationFilter" class="org.jasig.cas.client.authentication.AuthenticationFilter">
-            <property name="casServerLoginUrl" value="https://hal9000:8443/cas/login"/>
-            <property name="serverName" value="https://hal9000:8443"/>
-        </bean>
-
-        <bean id="casValidationFilter" class="org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter">
-            <property name="serverName" value="https://hal9000:8443"/>
-            <property name="exceptionOnValidationFailure" value="true"/>
-            <property name="proxyGrantingTicketStorage" ref="proxyGrantingTicketStorage"/>
-            <property name="redirectAfterValidation" value="true"/>
-            <property name="ticketValidator" ref="ticketValidator"/>
-            <property name="proxyReceptorUrl" value="/secure/receptor"/>
-        </bean>
-
-        <bean id="wrappingFilter" class="org.jasig.cas.client.util.HttpServletRequestWrapperFilter"/>
-    </beans>
+    <bean id="requestSingleLogoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter" p:filterProcessesUrl="/j_spring_cas_security_logout">
+        <constructor-arg value="https://localhost:9443/cas/logout"/>
+        <constructor-arg>
+            <bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
+        </constructor-arg>
+    </bean>
 
 </beans>

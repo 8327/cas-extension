@@ -4,6 +4,7 @@ import java.util.*;
 
 import javax.servlet.*;
 
+import org.jasig.cas.client.session.SingleSignOutHttpSessionListener;
 import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -27,6 +28,7 @@ public class WebAppInitializer implements WebApplicationInitializer {
 		characterEncodingFilter.setInitParameter("forceEncoding", "true");
 		
 		servletContext.addListener(new ContextLoaderListener(context));
+        servletContext.addListener(new SingleSignOutHttpSessionListener());
 		servletContext.setInitParameter("defaultHtmlEscape", "true");
 		
 		DispatcherServlet servlet = new DispatcherServlet();
