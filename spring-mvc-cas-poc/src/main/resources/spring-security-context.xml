@@ -2,8 +2,38 @@
        xmlns:p="http://www.springframework.org/schema/p"
        xmlns:sec="http://www.springframework.org/schema/security"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+
+
+    <sec:http entry-point-ref="casEntryPoint" use-expressions="true">
+        <sec:logout logout-success-url="/signin"/>
+        <sec:remember-me services-ref="rememberMeServices" key="remember-me-key"/>
+        <sec:intercept-url pattern="/" access="permitAll"/>
+        <sec:intercept-url pattern="/resources/**" access="permitAll"/>
+        <sec:intercept-url pattern="/signup" access="permitAll"/>
+        <sec:intercept-url pattern="/default/**" access="permitAll"/>
+        <sec:intercept-url pattern="/**" access="isAuthenticated()"/>
+        <sec:custom-filter position="CAS_FILTER" ref="casFilter"/>
+        <sec:custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/>
+        <sec:custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER"/>
+    </sec:http>
+
+    <bean id="casEntryPoint" class="org.springframework.security.cas.web.CasAuthenticationEntryPoint" p:loginUrl="https://hal9000:8443/cas/login"
+          p:serviceProperties-ref="serviceProperties"/>
+
+    <bean id="casFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter" p:authenticationManager-ref="authenticationManager"
+          p:proxyReceptorUrl="/j_spring_cas_security_receptor"/>
+
+    <bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter"/>
+
+    <bean id="requestSingleLogoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter" p:filterProcessesUrl="/j_spring_cas_security_logout">
+        <constructor-arg value="https://hal9000:8443/cas/logout"/>
+        <constructor-arg>
+            <bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
+        </constructor-arg>
+    </bean>
 
     <sec:authentication-manager alias="authenticationManager">
         <sec:authentication-provider ref="casAuthenticationProvider"/>
@@ -18,39 +48,14 @@
         <constructor-arg ref="userService"/>
     </bean>
 
-    <bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties" p:service="https://hal9000:8443/spring-mvc-cas-poc/signin"
+    <bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties" p:service="https://hal9000:9443/spring-mvc-cas-poc/j_spring_cas_security_check"
           p:sendRenew="false"/>
 
-    <bean id="ticketValidator" class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator">
+    <bean id="ticketValidator" class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator" p:proxyGrantingTicketStorage-ref="proxyGrantingTicketStorage"
+          p:proxyCallbackUrl="https://hal9000:9443/spring-mvc-cas-poc/j_spring_cas_security_receptor">
         <constructor-arg index="0" value="https://hal9000:8443/cas"/>
     </bean>
 
-    <sec:http entry-point-ref="casEntryPoint" use-expressions="true">
-        <sec:logout logout-success-url="/signin"/>
-        <sec:remember-me services-ref="rememberMeServices" key="remember-me-key"/>
-        <sec:intercept-url pattern="/" access="permitAll"/>
-        <sec:intercept-url pattern="/resources/**" access="permitAll"/>
-        <sec:intercept-url pattern="/signin" access="permitAll"/>
-        <sec:intercept-url pattern="/signup" access="permitAll"/>
-        <sec:intercept-url pattern="/default/**" access="permitAll"/>
-        <sec:intercept-url pattern="/**" access="isAuthenticated()"/>
-        <sec:custom-filter position="CAS_FILTER" ref="casFilter"/>
-        <sec:custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER"/>
-        <sec:custom-filter ref="singleLogoutFilter" before="CAS_FILTER"/>
-    </sec:http>
-
-    <bean id="casEntryPoint" class="org.springframework.security.cas.web.CasAuthenticationEntryPoint" p:loginUrl="https://hal9000:9443/cas/login"
-          p:serviceProperties-ref="serviceProperties"/>
-
-    <bean id="casFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter" p:authenticationManager-ref="authenticationManager"/>
-
-    <bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter"/>
-
-    <bean id="requestSingleLogoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter" p:filterProcessesUrl="/j_spring_cas_security_logout">
-        <constructor-arg value="https://localhost:9443/cas/logout"/>
-        <constructor-arg>
-            <bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
-        </constructor-arg>
-    </bean>
+    <bean id="proxyGrantingTicketStorage" class="org.jasig.cas.client.proxy.ProxyGrantingTicketStorageImpl"/>
 
 </beans>
