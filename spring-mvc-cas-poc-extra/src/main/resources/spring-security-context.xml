@@ -26,7 +26,7 @@
     <bean id="casFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter" p:authenticationManager-ref="authenticationManager"
           p:proxyReceptorUrl="/j_spring_cas_security_receptor"/>
 
-    <bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter" />
+    <bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter"/>
 
     <bean id="requestSingleLogoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter" p:filterProcessesUrl="/j_spring_cas_security_logout">
         <constructor-arg value="https://${hostname}:8443/cas/logout"/>
@@ -48,11 +48,11 @@
         <constructor-arg ref="userService"/>
     </bean>
 
-    <bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties" p:service="https://${hostname}:9453/spring-mvc-cas-poc-extra/j_spring_cas_security_check"
+    <bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties" p:service="https://${hostname}:9443/spring-mvc-cas-poc/j_spring_cas_security_check"
           p:sendRenew="false"/>
 
     <bean id="ticketValidator" class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator" p:proxyGrantingTicketStorage-ref="proxyGrantingTicketStorage"
-          p:proxyCallbackUrl="https://${hostname}:9453/spring-mvc-cas-poc-extra/j_spring_cas_security_receptor">
+          p:proxyCallbackUrl="https://${hostname}:9443/spring-mvc-cas-poc/j_spring_cas_security_receptor">
         <constructor-arg index="0" value="https://${hostname}:8443/cas"/>
     </bean>
 

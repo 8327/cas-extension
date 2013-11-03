@@ -19,7 +19,7 @@ public class SignupController {
 	
 	@Autowired
 	private UserService userService;
-	
+
 	@RequestMapping(value = "signup")
 	public SignupForm signup() {
 		return new SignupForm();
@@ -31,8 +31,7 @@ public class SignupController {
 			return null;
 		}
 		
-		Account account = accountRepository.save(signupForm.createAccount());
-		userService.signin(account);
+		userService.saveUser(signupForm.createAccount());
 
         MessageHelper.addSuccessAttribute(ra, "Congratulations! You have successfully signed up.");
 		
