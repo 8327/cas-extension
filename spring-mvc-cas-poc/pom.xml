@@ -1,11 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <artifactId>casparent</artifactId>
+        <groupId>com.fingolfintek</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>com.fingolfintek</groupId>
     <artifactId>spring-mvc-cas-poc</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>Spring MVC Application</name>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java-version>1.7</java-version>
@@ -16,6 +23,7 @@
         <ch.qos.logback-version>1.0.13</ch.qos.logback-version>
         <org.apache.tiles-version>3.0.1</org.apache.tiles-version>
     </properties>
+
     <repositories>
         <repository>
             <id>java.net2</id>
@@ -33,6 +41,7 @@
             </snapshots>
         </repository>
     </repositories>
+
     <dependencies>
         <!-- Spring -->
         <dependency>
@@ -241,7 +250,7 @@
                     <port>9090</port>
                     <ajpPort>9009</ajpPort>
                     <httpsPort>9443</httpsPort>
-                    <keystoreFile>${project.basedir}/src/main/resources/.keystore</keystoreFile>
+                    <keystoreFile>${keyStore.path}</keystoreFile>
                     <keystorePass>password</keystorePass>
                 </configuration>
             </plugin>

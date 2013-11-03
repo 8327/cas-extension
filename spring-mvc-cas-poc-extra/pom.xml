@@ -1,11 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <artifactId>casparent</artifactId>
+        <groupId>com.fingolfintek</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.fingolfintek</groupId>
     <artifactId>spring-mvc-cas-poc-extra</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>Spring MVC Application</name>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java-version>1.7</java-version>
@@ -241,7 +247,7 @@
                     <port>9091</port>
                     <ajpPort>9010</ajpPort>
                     <httpsPort>9453</httpsPort>
-                    <keystoreFile>${project.basedir}/src/main/resources/.keystore</keystoreFile>
+                    <keystoreFile>${keyStore.path}</keystoreFile>
                     <keystorePass>password</keystorePass>
                 </configuration>
             </plugin>
