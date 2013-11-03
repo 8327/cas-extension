@@ -74,7 +74,7 @@
                     <port>8090</port>
                     <ajpPort>8009</ajpPort>
                     <httpsPort>8443</httpsPort>
-                    <contextFile>${project.basedir}/src/main/resources/context.xml</contextFile>
+                    <contextFile>src/test/resources/context.xml</contextFile>
                     <keystoreFile>${keyStore.path}</keystoreFile>
                     <keystorePass>password</keystorePass>
                 </configuration>

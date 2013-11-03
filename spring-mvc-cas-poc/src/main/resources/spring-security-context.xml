@@ -20,7 +20,7 @@
         <sec:custom-filter ref="requestSingleLogoutFilter" before="LOGOUT_FILTER"/>
     </sec:http>
 
-    <bean id="casEntryPoint" class="org.springframework.security.cas.web.CasAuthenticationEntryPoint" p:loginUrl="https://hal9000:8443/cas/login"
+    <bean id="casEntryPoint" class="org.springframework.security.cas.web.CasAuthenticationEntryPoint" p:loginUrl="https://${hostname}:8443/cas/login"
           p:serviceProperties-ref="serviceProperties"/>
 
     <bean id="casFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter" p:authenticationManager-ref="authenticationManager"
@@ -29,7 +29,7 @@
     <bean id="singleLogoutFilter" class="org.jasig.cas.client.session.SingleSignOutFilter"/>
 
     <bean id="requestSingleLogoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter" p:filterProcessesUrl="/j_spring_cas_security_logout">
-        <constructor-arg value="https://hal9000:8443/cas/logout"/>
+        <constructor-arg value="https://${hostname}:8443/cas/logout"/>
         <constructor-arg>
             <bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler"/>
         </constructor-arg>
@@ -48,12 +48,12 @@
         <constructor-arg ref="userService"/>
     </bean>
 
-    <bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties" p:service="https://hal9000:9443/spring-mvc-cas-poc/j_spring_cas_security_check"
+    <bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties" p:service="https://${hostname}:9443/spring-mvc-cas-poc/j_spring_cas_security_check"
           p:sendRenew="false"/>
 
     <bean id="ticketValidator" class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator" p:proxyGrantingTicketStorage-ref="proxyGrantingTicketStorage"
-          p:proxyCallbackUrl="https://hal9000:9443/spring-mvc-cas-poc/j_spring_cas_security_receptor">
-        <constructor-arg index="0" value="https://hal9000:8443/cas"/>
+          p:proxyCallbackUrl="https://${hostname}:9443/spring-mvc-cas-poc/j_spring_cas_security_receptor">
+        <constructor-arg index="0" value="https://${hostname}:8443/cas"/>
     </bean>
 
     <bean id="proxyGrantingTicketStorage" class="org.jasig.cas.client.proxy.ProxyGrantingTicketStorageImpl"/>
